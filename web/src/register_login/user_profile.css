@@ -1,0 +1,61 @@
+.user-profile-bg {
+  min-height: 100vh;
+  background: linear-gradient(120deg, #fbeee6 0%, #f7cac9 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  border-radius: 32px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  padding: 40px 0 40px 0;
+  box-sizing: border-box;
+}
+.user-profile-wrapper {
+  max-width: 600px;
+  min-width: 400px;
+  margin: 60px auto;
+  background: linear-gradient(120deg, #fbeee6 0%, #f7cac9 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  padding: 48px 40px;
+}
+.user-profile-form > div {
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+}
+.user-profile-form label {
+  width: 120px;
+  color: #555;
+  font-weight: bold;
+  font-size: 1.15rem;
+}
+.user-profile-form input {
+  flex: 1;
+  padding: 14px 18px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  min-width: 0;
+}
+.user-profile-form button {
+  width: 100%;
+  padding: 16px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.15rem;
+  cursor: pointer;
+  margin-top: 12px;
+}
+.user-profile-form button:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+.error-msg {
+  color: #d32f2f;
+  margin-bottom: 12px;
+  text-align: center;
+}

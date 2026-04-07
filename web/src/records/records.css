@@ -1,0 +1,310 @@
+.bubble-confirm-box {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 10px);
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  border-radius: 8px;
+  padding: 8px 16px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+  margin-top: 4px;
+}
+
+.bubble-confirm-box::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 8px 10px 8px;
+  border-style: solid;
+  border-color: transparent transparent #fff transparent;
+  filter: drop-shadow(0 -1px 0 #e0e0e0);
+  width: 0;
+  height: 0;
+  z-index: 11;
+}
+.bubble-confirm-box .record-btn {
+  font-size: 13px;
+  white-space: nowrap;
+  padding: 4px 14px;
+}
+/* 冒泡确认框样式 */
+.bubble-confirm-box {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 10px);
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  border-radius: 8px;
+  padding: 8px 16px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+  margin-top: 4px;
+}
+/* 操作按钮样式 */
+.record-btn {
+  padding: 4px 16px;
+  margin: 0 4px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.record-btn-edit {
+  background: #fffbe6;
+  color: #b8860b;
+  border: 1px solid #ffe082;
+}
+.record-btn-edit:hover {
+  background: #fff9c4;
+  color: #ff9800;
+}
+.record-btn-delete {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+.record-btn-delete:hover {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+/* 保证记录列表上下排列，不左右显示 */
+.records-wrapper {
+  display: block;
+}
+/* 记录序号圆点样式 */
+.record-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid #888;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: #fff;
+}
+.dot-past {
+  background: #d32f2f;
+}
+.dot-today {
+  background: #4caf50;
+}
+.dot-future {
+  background: #fff;
+}
+.sortable-th {
+  transition: background 0.18s;
+}
+.sortable-th:hover {
+  background: #dbeafe;
+  color: #0e5bb5;
+}
+.sort-indicator {
+  display: inline-block;
+  color: #1976d2;
+  font-weight: bold;
+  vertical-align: middle;
+}
+/* 用户旅程计划记录列表样式 */
+.records-wrapper {
+  min-height: 100vh;
+  display: block;
+  background: linear-gradient(135deg, #e3f0fb 0%, #f7feff 100%);
+  padding: 40px 0;
+}
+.records-list-container {
+  width: 800px;
+  max-width: calc(100% - 48px);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.10);
+  padding: 36px 32px;
+  overflow-x: auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 今日计划头部栏 */
+.records-today-header {
+  width: 800px;
+  max-width: calc(100% - 48px);
+  margin: 0 auto 24px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.10);
+  padding: 24px 32px;
+}
+
+.records-today-content {
+  margin-top: 16px;
+}
+
+.records-today-empty {
+  color: #888;
+  text-align: center;
+  padding: 20px 0;
+  font-size: 1rem;
+}
+
+.records-today-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e3f0fb;
+}
+
+.records-today-item:last-child {
+  border-bottom: none;
+}
+
+.records-today-title {
+  font-weight: 600;
+  color: #333;
+  min-width: 120px;
+}
+
+.records-today-date {
+  color: #1976d2;
+  font-size: 0.95rem;
+  min-width: 140px;
+}
+
+.records-today-text {
+  flex: 1;
+  color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.records-today-actions {
+  position: relative;
+  display: flex;
+  gap: 8px;
+}
+
+.records-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 18px;
+}
+.records-table th, .records-table td {
+  border: 1px solid #e3f0fb;
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 1rem;
+}
+.records-table th {
+  background: #e3f0fb;
+  color: #1976d2;
+  font-weight: 700;
+}
+.records-table tr:nth-child(even) {
+  background: #f7feff;
+}
+.records-table tr:hover {
+  background: #eaf9f8;
+}
+.sort-btn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: background 0.18s;
+}
+.sort-btn:hover {
+  background: #0e5bb5;
+}
+.records-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin: 18px 0 0 0;
+}
+.pagination-btn {
+  background: #e3f0fb;
+  color: #1976d2;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.pagination-btn:disabled {
+  background: #f7feff;
+  color: #aaa;
+  cursor: not-allowed;
+}
+.pagination-info {
+  color: #1976d2;
+  font-size: 1rem;
+}
+.records-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 18px;
+  text-align: left;
+}
+.records-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.record-item {
+  border-bottom: 1px solid #e3f0fb;
+  padding: 18px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.record-item:last-child {
+  border-bottom: none;
+}
+.record-date {
+  font-size: 1.1rem;
+  color: #1976d2;
+  font-weight: 600;
+}
+.record-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+.record-content {
+  font-size: 1rem;
+  color: #444;
+  margin-top: 2px;
+}
+.record-meta {
+  font-size: 0.95rem;
+  color: #888;
+  display: flex;
+  gap: 18px;
+  margin-top: 4px;
+}
+.record-status {
+  font-size: 0.95rem;
+  color: #06b6d4;
+  font-weight: 500;
+}

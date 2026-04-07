@@ -1,0 +1,142 @@
+/* 今日计划页面样式 */
+.today-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e3f0fb 0%, #f7feff 100%);
+  padding: 40px 24px;
+}
+
+.today-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.10);
+  padding: 40px;
+}
+
+.today-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e3f0fb;
+}
+
+.today-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin: 0;
+}
+
+.today-date {
+  font-size: 1.1rem;
+  color: #666;
+  background: #f0f8ff;
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+
+.today-loading,
+.today-error {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.1rem;
+}
+
+.today-error {
+  color: #d32f2f;
+}
+
+.today-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.today-empty-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+.today-empty-text {
+  font-size: 1.3rem;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.today-empty-hint {
+  font-size: 1rem;
+  color: #999;
+}
+
+.today-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.today-item {
+  background: #f8fdff;
+  border: 1px solid #e3f0fb;
+  border-radius: 16px;
+  padding: 24px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.today-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.15);
+}
+
+.today-item-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.today-item-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.today-item-time {
+  font-size: 0.95rem;
+  color: #1976d2;
+  background: #e3f2fd;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.today-item-body {
+  margin-bottom: 16px;
+}
+
+.today-item-content {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.today-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px dashed #e3f0fb;
+}
+
+.today-item-create {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.today-item-actions {
+  position: relative;
+  display: flex;
+  gap: 8px;
+}
