@@ -1,0 +1,18 @@
+
+日程表
+CREATE TABLE daily_schedule (
+    sche_id INT NOT NULL AUTO_INCREMENT,  -- 唯一且不为空的主键
+    v_date DATE NOT NULL,                  -- 不可为空的日期字段
+    v_title VARCHAR(255) NOT NULL,         -- 不可为空的标题字段
+    v_content TEXT,                        -- 可容纳长文本的内容字段
+    is_stat TINYINT DEFAULT 1,             -- 状态字段，默认为 1
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认为当前时间
+    PRIMARY KEY (sche_id)                   -- 设置 sche_id 为主键
+);
+
+
+
+
+
+
+
