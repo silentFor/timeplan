@@ -42,8 +42,23 @@ timeplan/
 
 ```bash
 cd server
+
+# 1. 创建虚拟环境（推荐）
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# 或 .venv\Scripts\activate  # Windows
+
+# 2. 安装依赖
 pip install -r requirements.txt
+
+# 3. 配置环境变量
+cp .env.example .env
+# 编辑 .env 文件，填入你的配置
+
+# 4. 初始化数据库
 python create_tables.py
+
+# 5. 启动服务
 python app.py
 ```
 
