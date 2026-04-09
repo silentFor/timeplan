@@ -63,20 +63,14 @@ def daily_deal_data():
     
     df = pd.DataFrame(data_list)
     if df.empty:
+        logging.info("没有待发送的日程数据")
         return True
     
-    # 将日期不满足的排除，只保留今天或明天的数据（使用北京时间）
-    today = get_beijing_date()
-    tomorrow = today + timedelta(days=1)
-    # 将v_date转换为日期类型进行过滤
+    # 将v_date转换为日期类型
     df['v_date'] = pd.to_datetime(df['v_date']).dt.date
-    df = df[df['v_date'].isin([today, tomorrow])]
-    
-    if df.empty:
-        logging.info("没有今天或明天的待办事项")
-        return True
     
     # 按照account分组，为每个account发送邮件
+    # deal_min_email_data 会根据当前时间决定发送今天还是明天的安排
     for account, group_df in df.groupby('account'):
         deal_min_email_data(group_df)
     return df
@@ -84,14 +78,39 @@ def daily_deal_data():
 def deal_min_email_data(df):
     """
     处理数据，按日期分组发送邮件
-    - v_date为今天的发送一次邮件
-    - v_date为明天的发送一次邮件
+    - 早上6点：发送今天和明天的安排
+    - 晚上6点：只发送明天的安排
     - 单条：subject=v_title, body=v_content
     - 多条：subject="您今天/明天有N条日程安排", body=格式化列表
     """
-    # 获取今天和明天的日期（使用北京时间）
+    # 获取当前时间和日期（使用北京时间）
+    now = get_beijing_now()
+    current_hour = now.hour
     today = get_beijing_date()
     tomorrow = today + timedelta(days=1)
+    
+    # 判断发送时段
+    # 早上6点：发送今天和明天
+    # 晚上6点（18点）：只发送明天
+    if current_hour == 6:
+        # 早上6点：发送今天和明天的安排
+        send_dates = [today, tomorrow]
+        logging.info(f"早上6点邮件提醒：发送今天({today})和明天({tomorrow})的安排")
+    elif current_hour == 18:
+        # 晚上6点：只发送明天的安排
+        send_dates = [tomorrow]
+        logging.info(f"晚上6点邮件提醒：只发送明天({tomorrow})的安排")
+    else:
+        # 其他时间：默认发送今天和明天（兼容手动触发）
+        send_dates = [today, tomorrow]
+        logging.info(f"非定时时段触发：发送今天({today})和明天({tomorrow})的安排")
+    
+    # 过滤只保留需要发送的日期
+    df = df[df['v_date'].isin(send_dates)]
+    
+    if df.empty:
+        logging.info(f"{'明天' if current_hour == 18 else '今天和明天'}没有待办事项，跳过发送")
+        return True
     
     # 获取该用户的email（同一个账号的email是一样的，取第一条）
     receiver_email = df['email'].iloc[0]

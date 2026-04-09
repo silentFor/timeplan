@@ -36,8 +36,16 @@ def make_app():
     scheduler.init_app(app)
     
     # 定义定时任务函数（在应用上下文中执行）
-    @scheduler.task('cron', id='daily_email_job', hour=6, minute=0)
-    def scheduled_daily_email():
+    # 早上6点：发送今天和明天的安排
+    @scheduler.task('cron', id='morning_email_job', hour=6, minute=0)
+    def scheduled_morning_email():
+        with app.app_context():
+            from message.sendmsg import daily_deal_data
+            daily_deal_data()
+    
+    # 晚上6点：只发送明天的安排
+    @scheduler.task('cron', id='evening_email_job', hour=18, minute=0)
+    def scheduled_evening_email():
         with app.app_context():
             from message.sendmsg import daily_deal_data
             daily_deal_data()
