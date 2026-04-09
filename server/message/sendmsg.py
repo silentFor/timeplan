@@ -12,6 +12,16 @@ from datetime import datetime, timedelta
 import logging
 logging.basicConfig(level=logging.INFO)
 
+# 时区偏移（北京时间 UTC+8）
+TIMEZONE_OFFSET = timedelta(hours=8)
+
+def get_beijing_now():
+    """获取北京时间的datetime"""
+    return datetime.utcnow() + TIMEZONE_OFFSET
+
+def get_beijing_date():
+    """获取北京时间的日期"""
+    return get_beijing_now().date()
 
 def daily_deal_data():
     """
@@ -55,8 +65,8 @@ def daily_deal_data():
     if df.empty:
         return True
     
-    # 将日期不满足的排除，只保留今天或明天的数据
-    today = datetime.now().date()
+    # 将日期不满足的排除，只保留今天或明天的数据（使用北京时间）
+    today = get_beijing_date()
     tomorrow = today + timedelta(days=1)
     # 将v_date转换为日期类型进行过滤
     df['v_date'] = pd.to_datetime(df['v_date']).dt.date
@@ -79,8 +89,8 @@ def deal_min_email_data(df):
     - 单条：subject=v_title, body=v_content
     - 多条：subject="您今天/明天有N条日程安排", body=格式化列表
     """
-    # 获取今天和明天的日期
-    today = datetime.now().date()
+    # 获取今天和明天的日期（使用北京时间）
+    today = get_beijing_date()
     tomorrow = today + timedelta(days=1)
     
     # 获取该用户的email（同一个账号的email是一样的，取第一条）

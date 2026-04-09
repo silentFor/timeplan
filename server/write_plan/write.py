@@ -1,10 +1,17 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from timeplan.extensions import db
 from timeplan.model import DailySchedule
 import logging
 
 logging.basicConfig(level=logging.INFO)
+
+# 时区偏移（北京时间 UTC+8）
+TIMEZONE_OFFSET = timedelta(hours=8)
+
+def get_beijing_date():
+    """获取北京时间的日期"""
+    return (datetime.utcnow() + TIMEZONE_OFFSET).date()
 
 def write_plan_data(v_date, title, content, account):
     """Save a plan to DailySchedule.
@@ -32,8 +39,8 @@ def write_plan_data(v_date, title, content, account):
         logging.error(f'Error parsing v_date: {e}')
         return False
 
-    # set is_stat to 0 if the plan date is before today, otherwise 1
-    is_stat_val = 0 if v_date_obj < date.today() else 1
+    # set is_stat to 0 if the plan date is before today, otherwise 1 (使用北京时间)
+    is_stat_val = 0 if v_date_obj < get_beijing_date() else 1
     rec = DailySchedule(
         account=account,
         v_date=v_date_obj,

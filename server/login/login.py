@@ -1,7 +1,19 @@
 from timeplan.extensions import db
 from timeplan.model import Usermsg
 from tools.token_utils import generate_token
+from datetime import datetime, timedelta
 
+# 时区偏移（北京时间 UTC+8）
+TIMEZONE_OFFSET = timedelta(hours=8)
+
+def to_beijing_time(dt):
+    """将UTC时间转换为北京时间"""
+    if not dt:
+        return None
+    # 如果dt没有时区信息，假设它是UTC时间
+    if dt.tzinfo is None:
+        dt = dt + TIMEZONE_OFFSET
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
 
 def login_user(account: str, password: str):
     """Authenticate user by account and password.
@@ -29,8 +41,8 @@ def login_user(account: str, password: str):
         'email': user.email,
         'is_stat': user.is_stat,
         'c_memo': user.c_memo,
-        'create_time': user.create_time,
-        'update_time': user.update_time,
+        'create_time': to_beijing_time(user.create_time),
+        'update_time': to_beijing_time(user.update_time),
     }
     # 生成JWT token
     token = generate_token(user.user_id, user.account)
@@ -48,7 +60,7 @@ def get_user_msg(account: str):
     def fmt(dt):
         if not dt:
             return None
-        return dt.strftime('%Y-%m-%d %H:%M:%S')
+        return to_beijing_time(dt)
     data = {
         'user_id': user.user_id,
         'account': user.account,
