@@ -188,8 +188,20 @@ def send_email(receiver_email, subject, body):
             server.quit()
 
 
-def send_plan_created_email(receiver_email, title):
+def send_plan_created_email(receiver_email, title, v_date):
     """用户创建计划后发送通知邮件"""
+    # 获取当前日期
+    today = datetime.now().date()
+    # 将字符串格式的日期转换为日期对象
+    try:
+        v_date_obj = datetime.strptime(v_date, '%Y%m%d').date()  # 修改为 '%Y%m%d' 格式
+    except ValueError as e:
+        print(f"日期格式错误: {e}")
+        return
+    # 判断 v_date 是否在今天之前（或等于今天）
+    if v_date_obj <= today:
+        body = f'你添加了一项{v_date}《{title}》的记录！'
+    else:
+        body = f'你已做好了{v_date}《{title}》计划，将会在计划提前一天日期通知你！'
     subject = '计划创建成功'
-    body = f'你已做好了《{title}》计划，将会在计划提前一天日期通知你！'
     send_email(receiver_email, subject, body)

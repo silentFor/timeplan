@@ -50,7 +50,7 @@ def write_plan_data():
     try:
         user = Usermsg.query.filter_by(account=account).first()
         if user and user.email:
-            send_plan_created_email(user.email, title)
+            send_plan_created_email(user.email, title, v_date)
     except Exception as e:
         logging.error("发送计划创建通知邮件失败: %s", e)
 
