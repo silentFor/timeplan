@@ -12,6 +12,14 @@ from datetime import datetime, timedelta
 import logging
 logging.basicConfig(level=logging.INFO)
 
+# 邮件服务公共配置
+SMTP_SERVER = 'smtp.qq.com'
+SMTP_PORT = 587
+SENDER_EMAIL = '3128368084@qq.com'
+# QQ 邮箱需要使用授权码，不是登录密码
+# 获取方式：QQ邮箱 -> 设置 -> 账户 -> 开启SMTP服务 -> 获取授权码
+password = 'ubumagilbfwhdfeb'
+
 # 时区偏移（北京时间 UTC+8）
 TIMEZONE_OFFSET = timedelta(hours=8)
 
@@ -155,31 +163,33 @@ def deal_min_email_data(df):
     return True
 
 def send_email(receiver_email, subject, body):
-    # 1. 邮件基本信息
-    # QQ 邮箱配置
-    smtp_server = 'smtp.qq.com'
-    smtp_port = 587
-    sender_email = '3128368084@qq.com'
-    # QQ 邮箱需要使用授权码，不是登录密码
-    # 获取方式：QQ邮箱 -> 设置 -> 账户 -> 开启SMTP服务 -> 获取授权码
-    password = 'ubumagilbfwhdfeb'
-
-    # 2. 构建邮件内容
+    """通用邮件发送函数"""
+    # 构建邮件内容
     message = MIMEMultipart()
-    message['From'] = sender_email
+    message['From'] = SENDER_EMAIL
     message['To'] = receiver_email
     message['Subject'] = subject
 
     # 邮件正文
     message.attach(MIMEText(body, 'plain'))
 
-    # 3. 发送邮件
+    # 发送邮件
+    server = None
     try:
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()  # 启用 TLS 安全传输
-        server.login(sender_email, password)
+        server.login(SENDER_EMAIL, password)
         server.send_message(message)
+        logging.info("邮件发送成功: %s -> %s", subject, receiver_email)
     except Exception as e:
         logging.error("邮件发送失败: %s", e)
     finally:
-        server.quit()
+        if server:
+            server.quit()
+
+
+def send_plan_created_email(receiver_email, title):
+    """用户创建计划后发送通知邮件"""
+    subject = '计划创建成功'
+    body = f'你已做好了《{title}》计划，将会在计划提前一天日期通知你！'
+    send_email(receiver_email, subject, body)

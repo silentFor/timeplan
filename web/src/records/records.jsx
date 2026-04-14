@@ -1,8 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import './records.css';
 import { useAuth, logoutOn401 } from '../auth/AuthContext';
-import TodayPlans from './TodayPlans';
 import RecordsTable from './RecordsTable';
 
 export default function Records() {
@@ -11,7 +9,6 @@ export default function Records() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 获取数据
   const fetchRecords = () => {
     if (!user || !token) {
       setError('请先登录');
@@ -50,15 +47,11 @@ export default function Records() {
     // eslint-disable-next-line
   }, [user, token]);
 
-  // 调试输出
-  console.log('[Records] user:', user, 'token:', token ? '有' : '无', 'records数量:', records.length, 'error:', error);
-
   return (
     <div className="records-wrapper">
-      {/* 今日计划头部栏 */}
-      {/* <TodayPlans records={records} onRefresh={fetchRecords} /> */}
-      {/* 我的旅程计划记录表格 */}
-      <RecordsTable records={records} loading={loading} error={error} onRefresh={fetchRecords} />
+      <div className="records-container">
+        <RecordsTable records={records} loading={loading} error={error} onRefresh={fetchRecords} />
+      </div>
     </div>
   );
 }

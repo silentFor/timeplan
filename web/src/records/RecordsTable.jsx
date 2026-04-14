@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './records.css';
-import { useAuth, logoutOn401 } from '../auth/AuthContext';
+import { useAuth } from '../auth/AuthContext';
 import Pagination from './Pagination';
 
 const PAGE_SIZE = 20;
@@ -13,7 +13,6 @@ export default function RecordsTable({ records, loading, error, onRefresh }) {
 
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  // 排序
   const sortedRecords = [...records].sort((a, b) => {
     if (!a.v_date || !b.v_date) return 0;
     if (sortAsc) {
@@ -23,12 +22,10 @@ export default function RecordsTable({ records, loading, error, onRefresh }) {
     }
   });
 
-  // 筛选非今日计划并分页
   const otherRecords = sortedRecords.filter(r => (r.v_date || '').slice(0, 10) !== todayStr);
   const totalPages = Math.ceil(otherRecords.length / PAGE_SIZE);
   const pagedRecords = otherRecords.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // 执行删除
   const doDelete = async (row) => {
     if (!token) return;
     const sche_id = row.sche_id;
@@ -73,25 +70,24 @@ export default function RecordsTable({ records, loading, error, onRefresh }) {
   };
 
   return (
-    <div className="records-list-container">
-      <div className="records-title">我的旅程计划记录</div>
-      {loading && <div>加载中...</div>}
-      {error && <div style={{ color: '#d32f2f', marginBottom: 12 }}>{error}</div>}
+    <>
+      <div className="records-header">
+        <div className="records-title">我的旅程计划记录</div>
+        <div className="records-toolbar">
+          <button className="record-btn record-btn-edit" onClick={onRefresh}>刷新</button>
+        </div>
+      </div>
+      {loading && <div style={{ textAlign: 'center', padding: 24, color: '#6c757d' }}>加载中...</div>}
+      {error && <div style={{ color: '#dc3545', marginBottom: 12 }}>{error}</div>}
       <div className="records-table-scroll">
         <table className="records-table">
           <thead>
             <tr>
               <th>序号</th>
               <th>计划标题</th>
-              <th
-                className="sortable-th"
-                style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
-                onClick={handleSortToggle}
-              >
+              <th className="sortable-th" onClick={handleSortToggle}>
                 计划实施时间
-                <span className="sort-indicator" style={{ marginLeft: 6, fontSize: '1.1em' }}>
-                  {sortAsc ? '▲' : '▼'}
-                </span>
+                <span className="sort-indicator">{sortAsc ? '▲' : '▼'}</span>
               </th>
               <th>计划内容</th>
               <th>制定计划时间</th>
@@ -100,7 +96,9 @@ export default function RecordsTable({ records, loading, error, onRefresh }) {
           </thead>
           <tbody>
             {pagedRecords.length === 0 ? (
-              <tr><td colSpan={6} style={{ color: '#888', textAlign: 'center' }}>暂无记录</td></tr>
+              <tr>
+                <td colSpan={6} style={{ color: '#6c757d', textAlign: 'center', padding: 32 }}>暂无记录</td>
+              </tr>
             ) : (
               pagedRecords.map((rec, idx) => {
                 const recDate = (rec.v_date || '').slice(0, 10);
@@ -117,7 +115,7 @@ export default function RecordsTable({ records, loading, error, onRefresh }) {
                     <td>{rec.v_date}</td>
                     <td>{rec.v_content}</td>
                     <td>{rec.create_time}</td>
-                    <td style={{ position: 'relative' }}>
+                    <td style={{ position: 'relative', whiteSpace: 'nowrap' }}>
                       <button className="record-btn record-btn-edit">修改</button>
                       <button className="record-btn record-btn-delete" onClick={() => handleDeleteClick('other-' + idx)}>删除</button>
                       {deleteKey === 'other-' + idx && (
@@ -135,6 +133,6 @@ export default function RecordsTable({ records, loading, error, onRefresh }) {
         </table>
       </div>
       <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
-    </div>
+    </>
   );
 }

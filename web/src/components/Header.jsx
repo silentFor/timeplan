@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './header.css';
 import { useAuth, logoutOn401 } from '../auth/AuthContext';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
@@ -6,9 +6,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 export default function Header() {
   const { user, token, login, logout } = useAuth();
   console.log('Header user:', user);
-  const [popoverUser, setPopoverUser] = useState(null);
-  const [showPopover, setShowPopover] = useState(false);
-  const [popoverError, setPopoverError] = useState('');
+
 
   // 登录后自动获取一次用户信息并更新全局user
   React.useEffect(() => {
@@ -40,8 +38,6 @@ export default function Header() {
   }, [user && user.account, token]);
   const navigate = useNavigate();
 
-  // 只显示user_name字段
-  const account = user && user.account;
   const username = user && user.user_name;
   console.log('Header username:', username);
 
@@ -106,7 +102,7 @@ export default function Header() {
                   }
                   navigate('/user_profile');
                 }}
-                onMouseLeave={() => setTimeout(() => setShowPopover(false), 200)}
+
               >
                 {username}
               </span>

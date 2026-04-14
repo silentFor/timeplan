@@ -5,35 +5,21 @@ import { useNavigate } from 'react-router-dom';
 
 const Planner = () => {
   const today = new Date().toISOString().split('T')[0];
-  
   const [date, setDate] = useState(today);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const { token, user } = useAuth();
   const navigate = useNavigate();
 
-  const handleDateChange = (e) => {
-    setDate(e.target.value);
-  };
-
-  const handleTitleChange = (e) => {
-    setTitle(e.target.value);
-  };
-
-  const handleContentChange = (e) => {
-    setContent(e.target.value);
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     const formattedDate = date.replace(/-/g, '');
     const data = {
-      'v_date': formattedDate,
-      'title': title,
-      'content': content,
-      // include a user identifier from the authenticated context (not from user input)
-      'account': (user && (user.account || user.username || user.name)) || null,
-      'user_id': (user && (user.id || user.user_id)) || null
+      v_date: formattedDate,
+      title: title,
+      content: content,
+      account: (user && (user.account || user.username || user.name)) || null,
+      user_id: (user && (user.id || user.user_id)) || null
     };
 
     if (!token) {
@@ -50,73 +36,74 @@ const Planner = () => {
       },
       body: JSON.stringify(data)
     })
-    .then(async response => {
-      if (response.status === 401) {
-        logoutOn401();
-        alert('登录已过期，请重新登录');
-        return;
-      }
-      if (!response.ok) {
-        throw new Error('网络响应不正常');
-      }
-      const data = await response.json();
-      console.log('上传结果:', data);
-      if (data.code !== 0) {
-        alert(data.message || '上传失败');
-        return;
-      }
-      alert(data.message || '上传成功');
-      setDate(today);
-      setTitle('');
-      setContent('');
-    })
-    .catch(error => {
-      console.error('错误:', error);  
-      alert('错误');
-    });
-};
+      .then(async response => {
+        if (response.status === 401) {
+          logoutOn401();
+          alert('登录已过期，请重新登录');
+          return;
+        }
+        if (!response.ok) {
+          throw new Error('网络响应不正常');
+        }
+        const data = await response.json();
+        if (data.code !== 0) {
+          alert(data.message || '上传失败');
+          return;
+        }
+        alert(data.message || '上传成功');
+        setDate(today);
+        setTitle('');
+        setContent('');
+      })
+      .catch(() => {
+        alert('保存失败，请稍后重试');
+      });
+  };
 
   return (
-    <div className="wp-wrapper">
-      <div className="planner-container">
-        <h1>旅程</h1>
-        <p className="planner-subtitle">记录你的日程与计划，让每一天更有条理~</p>
-        <form onSubmit={handleSubmit} className="form-grid">
+    <div className="write-wrapper">
+      <div className="write-container">
+        <div className="write-header">
+          <h1 className="write-title">新建计划</h1>
+          <p className="write-subtitle">安排你的日程，记录待办事项</p>
+        </div>
+        <form onSubmit={handleSubmit} className="write-form">
           <div className="form-group">
-
-
-            <label htmlFor="date">安排时间:</label>
+            <label htmlFor="date">安排时间</label>
             <input
               type="date"
               id="date"
               value={date}
-              onChange={handleDateChange}
+              onChange={(e) => setDate(e.target.value)}
               required
             />
           </div>
           <div className="form-group">
-            <label htmlFor="title">标题:</label>
+            <label htmlFor="title">标题</label>
             <input
               type="text"
               id="title"
               value={title}
-              onChange={handleTitleChange}
-              placeholder="主题"
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="计划主题"
               required
             />
           </div>
           <div className="form-group">
-            <label htmlFor="content">内容:</label>
+            <label htmlFor="content">内容</label>
             <textarea
               id="content"
               value={content}
-              onChange={handleContentChange}
-              placeholder="计划...."
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="详细描述你的计划内容"
               required
             />
           </div>
-          <div className="actions-row">
-            <button type="submit" className="submit-button">保存</button>
+          <div className="write-actions">
+            <button type="button" className="write-btn write-btn-secondary" onClick={() => { setDate(today); setTitle(''); setContent(''); }}>
+              重置
+            </button>
+            <button type="submit" className="write-btn write-btn-primary">保存</button>
           </div>
         </form>
       </div>

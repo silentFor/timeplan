@@ -16,7 +16,6 @@ export default function UserProfile() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // 如果没有通过路由传递数据，则请求接口
   useEffect(() => {
     if (location.state && location.state.userData) return;
     if (!user || !token) return;
@@ -46,17 +45,14 @@ export default function UserProfile() {
       .finally(() => setLoading(false));
   }, [user, token, location.state]);
 
-  // 修改表单字段
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 保存修改
   const handleSave = (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    // 保证 user_id 一定传递
     const submitData = { ...form };
     if (!submitData.user_id && user && user.user_id) {
       submitData.user_id = user.user_id;
@@ -77,12 +73,9 @@ export default function UserProfile() {
         }
         const json = await resp.json().catch(() => ({}));
         if (resp.ok && json.data) {
-          // 若后端返回新的token则用新token，否则用旧token
           const newToken = json.token || json.data.token || token;
-          // 用后端返回的完整用户对象（含user_name等字段）
           login({ user: json.data, token: newToken });
           setForm(json.data);
-          // 再主动获取一次全量用户信息，确保全局user为最新
           fetch('http://127.0.0.1:5000/auth/get_user_msg', {
             method: 'POST',
             headers: {
@@ -104,7 +97,6 @@ export default function UserProfile() {
             })
             .finally(() => {
               alert('保存成功，请重新登录');
-              // 退出登录并跳转到登录界面
               login({ user: null, token: null });
               navigate('/login');
             });
@@ -117,36 +109,40 @@ export default function UserProfile() {
   };
 
   return (
-    <div className="user-profile-bg">
-      <div className="user-profile-wrapper">
-        <h2>个人信息</h2>
-        {error && <div className="error-msg">{error}</div>}
-        <form className="user-profile-form" onSubmit={handleSave}>
-          <div>
-            <label>账号：</label>
+    <div className="profile-wrapper">
+      <div className="profile-container">
+        <h2 className="profile-title">个人信息</h2>
+        {error && <div className="profile-error">{error}</div>}
+        <form className="profile-form" onSubmit={handleSave}>
+          <div className="profile-field">
+            <label>账号</label>
             <input value={form.account || ''} name="account" onChange={handleChange} />
           </div>
-          <div>
-            <label>用户名：</label>
+          <div className="profile-field">
+            <label>用户名</label>
             <input value={form.user_name || ''} name="user_name" onChange={handleChange} />
           </div>
-          <div>
-            <label>邮箱：</label>
+          <div className="profile-field">
+            <label>邮箱</label>
             <input value={form.email || ''} name="email" onChange={handleChange} />
           </div>
-          <div>
-            <label>备注：</label>
+          <div className="profile-field">
+            <label>备注</label>
             <input value={form.c_memo || ''} name="c_memo" onChange={handleChange} />
           </div>
-          <div>
-            <label>创建时间：</label>
+          <div className="profile-field">
+            <label>创建时间</label>
             <span>{form.create_time || ''}</span>
           </div>
-          <div>
-            <label>更新时间：</label>
+          <div className="profile-field">
+            <label>更新时间</label>
             <span>{form.update_time || ''}</span>
           </div>
-          <button type="submit" disabled={loading}>{loading ? '保存中...' : '保存修改'}</button>
+          <div className="profile-actions">
+            <button className="profile-btn" type="submit" disabled={loading}>
+              {loading ? '保存中...' : '保存修改'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

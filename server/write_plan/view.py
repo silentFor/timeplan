@@ -3,6 +3,9 @@ from flask_cors import CORS
 from tools.token_utils import decode_token
 
 from write_plan import write
+from message.sendmsg import send_plan_created_email
+from timeplan.model import Usermsg
+
 import logging
 logging.basicConfig(level=logging.INFO)
 
@@ -21,8 +24,6 @@ def write_plan_data():
     token = parts[1]
     ok, payload = decode_token(token)
     if not ok:
-        
-
         return jsonify({'message': payload, 'data': ''}), 401
     user_id = payload.get('user_id')
     if not user_id:
@@ -37,13 +38,20 @@ def write_plan_data():
     v_date = param.get('v_date', '')
     title = param.get('title', '')
     content = param.get('content', '')
-    account = param.get('account', '')  
+    account = param.get('account', '')
     logging.info([v_date, title, content, account])
 
     # 调用数据处理函数
     flat = write.write_plan_data(v_date, title, content, account)
     if flat is False:
-        return jsonify({'code':-1,'message': '保存错误', 'data': ''}), 500
-    return jsonify({'code':0,'message': '日程安排成功', 'data': []}), 201
+        return jsonify({'code': -1, 'message': '保存错误', 'data': ''}), 500
 
+    # 保存成功后发送邮件通知
+    try:
+        user = Usermsg.query.filter_by(account=account).first()
+        if user and user.email:
+            send_plan_created_email(user.email, title)
+    except Exception as e:
+        logging.error("发送计划创建通知邮件失败: %s", e)
 
+    return jsonify({'code': 0, 'message': '日程安排成功', 'data': []}), 201
