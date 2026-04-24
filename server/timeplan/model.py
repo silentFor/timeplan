@@ -33,3 +33,33 @@ class Usermsg(db.Model):
     def __repr__(self):
         return f"<Usermsg(user_id={self.user_id}, account='{self.account}', email='{self.email}')>"
 
+
+class EmailVerificationCode(db.Model):
+    __tablename__ = 'email_verification_code'
+
+    id = db.Column(db.String(36), primary_key=True)
+    email = db.Column(db.String(255), nullable=False, index=True)
+    code = db.Column(db.String(10), nullable=False)
+    status = db.Column(db.SmallInteger, default=1)  # 1: 有效, 0: 失效
+    c_memo = db.Column(db.Text, nullable=True)
+    create_time = db.Column(db.TIMESTAMP, server_default=func.now())
+    update_time = db.Column(db.TIMESTAMP, server_default=func.now(), server_onupdate=func.now())
+
+    def __repr__(self):
+        return f"<EmailVerificationCode(id='{self.id}', email='{self.email}', status={self.status})>"
+
+
+class EmailSendRecord(db.Model):
+    __tablename__ = 'email_send_record'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    account = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    send_content = db.Column(db.Text, nullable=True)
+    status = db.Column(db.SmallInteger, default=1)  # 1: 成功, 0: 失败
+    c_memo = db.Column(db.Text, nullable=True)
+    create_time = db.Column(db.TIMESTAMP, server_default=func.now())
+    update_time = db.Column(db.TIMESTAMP, server_default=func.now(), server_onupdate=func.now())
+
+    def __repr__(self):
+        return f"<EmailSendRecord(account='{self.account}', email='{self.email}', status={self.status})>"

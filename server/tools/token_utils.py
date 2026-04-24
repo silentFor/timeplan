@@ -11,10 +11,10 @@ def get_beijing_time():
     """获取北京时间"""
     return datetime.datetime.utcnow() + TIMEZONE_OFFSET
 
-def generate_token(user_id, account, expire_hours=EXPIRE_HOURS):
+def generate_token(user_id, email, expire_hours=EXPIRE_HOURS):
     payload = {
         'user_id': user_id,
-        'account': account,
+        'email': email,
         'exp': get_beijing_time() + datetime.timedelta(hours=expire_hours)
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')

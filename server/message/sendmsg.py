@@ -3,7 +3,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from timeplan.model import DailySchedule, Usermsg
+from timeplan.model import DailySchedule, Usermsg, EmailSendRecord
 from timeplan.extensions import db
 
 import pandas as pd
@@ -120,8 +120,9 @@ def deal_min_email_data(df):
         logging.info(f"{'明天' if current_hour == 18 else '今天和明天'}没有待办事项，跳过发送")
         return True
     
-    # 获取该用户的email（同一个账号的email是一样的，取第一条）
+    # 获取该用户的email和account（同一个账号的email是一样的，取第一条）
     receiver_email = df['email'].iloc[0]
+    receiver_account = df['account'].iloc[0]
     
     # 按照v_date分组处理
     for date_val, date_df in df.groupby('v_date'):
@@ -156,14 +157,18 @@ def deal_min_email_data(df):
             
             body = "\n".join(body_lines).strip()
         
-        # 发送邮件
-        send_email(receiver_email, subject, body)
+        # 发送邮件（传入account用于记录发送日志）
+        send_email(receiver_email, subject, body, account=receiver_account)
         logging.info(f"已向 {receiver_email} 发送{date_desc}的邮件: {subject}")
     
     return True
 
-def send_email(receiver_email, subject, body):
-    """通用邮件发送函数"""
+def send_email(receiver_email, subject, body, account=None, record_status=1):
+    """通用邮件发送函数
+
+    参数:
+        record_status: 发送成功时记录到数据库的状态值（默认1），失败固定为0
+    """
     # 构建邮件内容
     message = MIMEMultipart()
     message['From'] = SENDER_EMAIL
@@ -175,20 +180,40 @@ def send_email(receiver_email, subject, body):
 
     # 发送邮件
     server = None
+    success = False
     try:
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()  # 启用 TLS 安全传输
         server.login(SENDER_EMAIL, password)
         server.send_message(message)
         logging.info("邮件发送成功: %s -> %s", subject, receiver_email)
+        success = True
     except Exception as e:
         logging.error("邮件发送失败: %s", e)
+        success = False
     finally:
         if server:
             server.quit()
 
+    # 记录邮件发送日志（仅当传入了account时记录）
+    if account is not None:
+        try:
+            record = EmailSendRecord(
+                account=account,
+                email=receiver_email,
+                send_content=f"主题: {subject}\n\n{body}",
+                status=record_status if success else 0,
+                c_memo=None
+            )
+            db.session.add(record)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logging.error("保存邮件发送记录失败: %s", e)
+    return True
 
-def send_plan_created_email(receiver_email, title, v_date):
+
+def send_plan_created_email(receiver_email, title, v_date, account=None):
     """用户创建计划后发送通知邮件"""
     # 获取当前日期
     today = datetime.now().date()
@@ -204,4 +229,5 @@ def send_plan_created_email(receiver_email, title, v_date):
     else:
         body = f'你已做好了{v_date}《{title}》计划，将会在计划提前一天日期通知你！'
     subject = '计划创建成功'
-    send_email(receiver_email, subject, body)
+    send_email(receiver_email, subject, body, account=account, record_status=2)
+    return True

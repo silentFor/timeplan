@@ -115,3 +115,34 @@
 .auth-footer a:hover {
   text-decoration: underline;
 }
+
+.auth-code-row {
+  display: flex;
+  gap: 10px;
+}
+
+.auth-code-input {
+  flex: 1;
+}
+
+.auth-code-btn {
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background-color: #198754;
+  border: 1px solid #198754;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.auth-code-btn:hover:not(:disabled) {
+  background-color: #157347;
+  border-color: #146c43;
+}
+
+.auth-code-btn:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}

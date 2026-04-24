@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,15 +14,15 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-    if (!username || !password) {
-      setError('请输入账号和密码');
+    if (!email || !password) {
+      setError('请输入邮箱和密码');
       return;
     }
     setLoading(true);
     fetch('http://127.0.0.1:5000/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ account: username, password }),
+      body: JSON.stringify({ email, password }),
     })
       .then(async (resp) => {
         const json = await resp.json().catch(() => ({}));
@@ -45,13 +45,13 @@ export default function Login() {
         <h2 className="auth-title">登录</h2>
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-field">
-            <label>账号</label>
+            <label>邮箱</label>
             <input
               className="auth-input"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="请输入账号"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="请输入邮箱"
             />
           </div>
           <div className="auth-field">

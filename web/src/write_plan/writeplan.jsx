@@ -8,26 +8,36 @@ const Planner = () => {
   const [date, setDate] = useState(today);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const { token, user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const { token } = useAuth();
   const navigate = useNavigate();
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type });
+    }, 2500);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (loading) return;
+
     const formattedDate = date.replace(/-/g, '');
     const data = {
       v_date: formattedDate,
       title: title,
       content: content,
-      account: (user && (user.account || user.username || user.name)) || null,
-      user_id: (user && (user.id || user.user_id)) || null
     };
 
     if (!token) {
-      alert('请先登录以保存计划');
+      showToast('请先登录以保存计划', 'error');
       navigate('/login');
       return;
     }
 
+    setLoading(true);
     fetch('http://127.0.0.1:5000/write/write_plan_data', {
       method: 'POST',
       headers: {
@@ -39,24 +49,27 @@ const Planner = () => {
       .then(async response => {
         if (response.status === 401) {
           logoutOn401();
-          alert('登录已过期，请重新登录');
+          showToast('登录已过期，请重新登录', 'error');
           return;
         }
         if (!response.ok) {
           throw new Error('网络响应不正常');
         }
-        const data = await response.json();
-        if (data.code !== 0) {
-          alert(data.message || '上传失败');
+        const respData = await response.json();
+        if (respData.code !== 0) {
+          showToast(respData.message || '上传失败', 'error');
           return;
         }
-        alert(data.message || '上传成功');
+        showToast(respData.message || '日程安排成功', 'success');
         setDate(today);
         setTitle('');
         setContent('');
       })
       .catch(() => {
-        alert('保存失败，请稍后重试');
+        showToast('保存失败，请稍后重试', 'error');
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -103,10 +116,18 @@ const Planner = () => {
             <button type="button" className="write-btn write-btn-secondary" onClick={() => { setDate(today); setTitle(''); setContent(''); }}>
               重置
             </button>
-            <button type="submit" className="write-btn write-btn-primary">保存</button>
+            <button type="submit" className="write-btn write-btn-primary" disabled={loading}>
+              {loading ? '保存中...' : '保存'}
+            </button>
           </div>
         </form>
       </div>
+
+      {toast.show && (
+        <div className={`write-toast ${toast.type}`}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 };

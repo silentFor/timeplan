@@ -15,17 +15,17 @@ def to_beijing_time(dt):
         dt = dt + TIMEZONE_OFFSET
     return dt.strftime('%Y-%m-%d %H:%M:%S')
 
-def login_user(account: str, password: str):
-    """Authenticate user by account and password.
+def login_user(email: str, password: str):
+    """Authenticate user by email and password.
 
     Returns a tuple: (ok: bool, message: str, data: dict|None)
     """
-    if not account or not password:
-        return False, '账号或密码缺失', None
+    if not email or not password:
+        return False, '邮箱或密码缺失', None
 
-    user = Usermsg.query.filter_by(account=account).first()
+    user = Usermsg.query.filter_by(email=email).first()
     if not user:
-        return False, '账号不存在', None
+        return False, '邮箱不存在', None
 
     # NOTE: this compares plain-text passwords to the stored `passwocrd` field.
     # Replace with hashed password check if you store hashed passwords.
@@ -45,18 +45,18 @@ def login_user(account: str, password: str):
         'update_time': to_beijing_time(user.update_time),
     }
     # 生成JWT token
-    token = generate_token(user.user_id, user.account)
+    token = generate_token(user.user_id, user.email)
     data['token'] = token
     return True, '登录成功', data
 
 
-def get_user_msg(account: str):
-    """根据account查询用户完整信息，返回 user_id, account, user_name, email, c_memo, create_time, update_time（格式化）"""
-    if not account:
-        return False, '账号缺失', None
-    user = Usermsg.query.filter_by(account=account).first()
+def get_user_msg(email: str):
+    """根据email查询用户完整信息，返回 user_id, account, user_name, email, c_memo, create_time, update_time（格式化）"""
+    if not email:
+        return False, '邮箱缺失', None
+    user = Usermsg.query.filter_by(email=email).first()
     if not user:
-        return False, '账号不存在', None
+        return False, '用户不存在', None
     def fmt(dt):
         if not dt:
             return None
@@ -71,4 +71,3 @@ def get_user_msg(account: str):
         'update_time': fmt(user.update_time),
     }
     return True, '查询成功', data
-

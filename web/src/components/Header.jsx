@@ -11,7 +11,7 @@ export default function Header() {
   // 登录后自动获取一次用户信息并更新全局user
   React.useEffect(() => {
     async function fetchUserMsgOnLogin() {
-      if (user && token && user.account) {
+      if (user && token && user.email) {
         try {
           const resp = await fetch('http://127.0.0.1:5000/auth/get_user_msg', {
             method: 'POST',
@@ -19,7 +19,7 @@ export default function Header() {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ account: user.account }),
+            body: JSON.stringify({ email: user.email }),
           });
           if (resp.status === 401) {
             logoutOn401();
@@ -33,9 +33,9 @@ export default function Header() {
       }
     }
     fetchUserMsgOnLogin();
-    // 只在user/account变化时调用
+    // 只在user/email变化时调用
     // eslint-disable-next-line
-  }, [user && user.account, token]);
+  }, [user && user.email, token]);
   const navigate = useNavigate();
 
   const username = user && user.user_name;
@@ -87,7 +87,7 @@ export default function Header() {
                           'Authorization': `Bearer ${token}`,
                           'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ account: user.account }),
+                        body: JSON.stringify({ email: user.email }),
                       });
                       if (resp.status === 401) {
                         logoutOn401();
@@ -120,4 +120,3 @@ export default function Header() {
 
   );
 }
-

@@ -26,7 +26,7 @@ export default function UserProfile() {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ account: user.account }),
+      body: JSON.stringify({ email: user.email }),
     })
       .then(async (resp) => {
         if (resp.status === 401) {
@@ -57,6 +57,8 @@ export default function UserProfile() {
     if (!submitData.user_id && user && user.user_id) {
       submitData.user_id = user.user_id;
     }
+    // 删除不可修改的 account 字段，避免误传
+    delete submitData.account;
     fetch('http://127.0.0.1:5000/auth/update_user_msg', {
       method: 'POST',
       headers: {
@@ -82,7 +84,7 @@ export default function UserProfile() {
               'Authorization': `Bearer ${newToken}`,
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ account: json.data.account }),
+            body: JSON.stringify({ email: json.data.email }),
           })
             .then(async (userResp) => {
               if (userResp.status === 401) {
@@ -116,7 +118,7 @@ export default function UserProfile() {
         <form className="profile-form" onSubmit={handleSave}>
           <div className="profile-field">
             <label>账号</label>
-            <input value={form.account || ''} name="account" onChange={handleChange} />
+            <input value={form.account || ''} name="account" readOnly disabled />
           </div>
           <div className="profile-field">
             <label>用户名</label>

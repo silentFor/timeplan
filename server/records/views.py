@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 from tools.token_utils import decode_token
 from records.record import get_records_data, delete_records
+from timeplan.model import Usermsg
 import logging
 logging.basicConfig(level=logging.INFO)
 
@@ -21,12 +22,17 @@ def get_records_data_route():
 	logging.info(payload)
 	if not ok:
 		return jsonify({'message': payload, 'data': ''}), 401
-	account = payload.get('account')
-	if not account:
-		return jsonify({'message': 'no account in token', 'data': ''}), 401
+	email = payload.get('email')
+	if not email:
+		return jsonify({'message': 'no email in token', 'data': ''}), 401
+
+	# 通过email查询account
+	user = Usermsg.query.filter_by(email=email).first()
+	if not user:
+		return jsonify({'message': '用户不存在', 'data': ''}), 401
 
 	# 获取数据
-	data = get_records_data(account)
+	data = get_records_data(user.account)
 	return jsonify({'message': '获取成功', 'data': data}), 200
 
 @records_views.route('/delete_records_data', methods=['POST'])
@@ -54,4 +60,3 @@ def delete_records_data_route():
 		return jsonify({'message': '删除成功', 'data': ''}), 200
 	else:
 		return jsonify({'message': '未找到该记录或删除失败', 'data': ''}), 500
-

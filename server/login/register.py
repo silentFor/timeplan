@@ -1,45 +1,51 @@
 import re
+import uuid
 from typing import Tuple, Optional
 
 from timeplan.extensions import db
 from timeplan.model import Usermsg
+from message.verification import verify_code
 from tools.token_utils import generate_token
 
 EMAIL_RE = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
-ACCOUNT_RE = re.compile(r'^[A-Za-z0-9_.@]+$')
 
-def validate_registration_fields(account: str, password: str, email: str, user_name: Optional[str], c_memo: Optional[str]) -> Tuple[bool, str]:
-	if not account:
-		return False, '账号不能为空'
-	if not ACCOUNT_RE.match(account):
-		return False, '账号只能包含字母、数字、下划线、点和@'
-	elif len(account) < 5:
-		return False, '账号长度至少 5 位'
-	elif len(account) > 30:
-		return False, '账号长度最多 30 位'
+
+def validate_registration_fields(password: str, email: str, verification_code: str) -> Tuple[bool, str]:
+	if not email:
+		return False, '邮箱不能为空'
+	if not EMAIL_RE.match(email):
+		return False, '邮箱格式不正确'
+	if not verification_code:
+		return False, '验证码不能为空'
 	if not password:
 		return False, '密码不能为空'
 	if len(password) < 8:
 		return False, '密码长度至少 8 位'
-	if not email:
-		return False, '邮箱不能为空'
-	
-	if not EMAIL_RE.match(email):
-		return False, '邮箱格式不正确'
 	return True, ''
 
-def register_user(account: str, password: str, email: str, user_name: Optional[str] = None, c_memo: Optional[str] = None):
+
+def register_user(password: str, email: str, verification_code: str, user_name: Optional[str] = None, c_memo: Optional[str] = None):
 	"""Register a new user. Returns (ok, message, data).
 
-	Data contains the created user's id and account on success.
+	Data contains the created user's id, account and email on success.
 	"""
-	ok, msg = validate_registration_fields(account, password, email, user_name, c_memo)
+	ok, msg = validate_registration_fields(password, email, verification_code)
 	if not ok:
 		return False, msg, None
 
-	# check uniqueness
-	if Usermsg.query.filter_by(account=account).first():
-		return False, '账号已存在', None
+	# check email uniqueness
+	if Usermsg.query.filter_by(email=email).first():
+		return False, '邮箱已存在', None
+
+	# verify email code
+	if not verify_code(email, verification_code):
+		return False, '验证码错误或已过期', None
+
+	# generate a random account with uuid
+	account = str(uuid.uuid4()).replace('-', '')[:20]
+	# ensure uniqueness (very unlikely to collide, but handle it)
+	while Usermsg.query.filter_by(account=account).first():
+		account = str(uuid.uuid4()).replace('-', '')[:20]
 
 	try:
 		user = Usermsg(
@@ -56,6 +62,6 @@ def register_user(account: str, password: str, email: str, user_name: Optional[s
 		db.session.rollback()
 		return False, f'创建用户失败: {str(e)}', None
 
-	token = generate_token(user.user_id, user.account)
-	data = {'user_id': user.user_id, 'account': user.account, 'token': token}
+	token = generate_token(user.user_id, user.email)
+	data = {'user_id': user.user_id, 'account': user.account, 'email': user.email, 'token': token}
 	return True, '注册成功', data

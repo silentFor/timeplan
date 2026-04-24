@@ -6,6 +6,7 @@ from write_plan import write
 from message.sendmsg import send_plan_created_email
 from timeplan.model import Usermsg
 
+import threading
 import logging
 logging.basicConfig(level=logging.INFO)
 
@@ -25,9 +26,15 @@ def write_plan_data():
     ok, payload = decode_token(token)
     if not ok:
         return jsonify({'message': payload, 'data': ''}), 401
-    user_id = payload.get('user_id')
-    if not user_id:
-        return jsonify({'message': 'no user id in token', 'data': ''}), 401
+    email = payload.get('email')
+    if not email:
+        return jsonify({'message': 'no email in token', 'data': ''}), 401
+
+    # 通过email查询用户account
+    user = Usermsg.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'message': '用户不存在', 'data': ''}), 401
+    account = user.account
 
     # 读取请求 JSON 数据
     param = request.get_json() or {}
@@ -38,7 +45,6 @@ def write_plan_data():
     v_date = param.get('v_date', '')
     title = param.get('title', '')
     content = param.get('content', '')
-    account = param.get('account', '')
     logging.info([v_date, title, content, account])
 
     # 调用数据处理函数
@@ -46,12 +52,14 @@ def write_plan_data():
     if flat is False:
         return jsonify({'code': -1, 'message': '保存错误', 'data': ''}), 500
 
-    # 保存成功后发送邮件通知
-    try:
-        user = Usermsg.query.filter_by(account=account).first()
-        if user and user.email:
-            send_plan_created_email(user.email, title, v_date)
-    except Exception as e:
-        logging.error("发送计划创建通知邮件失败: %s", e)
+    # 保存成功后异步发送邮件通知，避免阻塞接口响应
+    def async_send_email():
+        try:
+            if user.email:
+                send_plan_created_email(user.email, title, v_date, account=account)
+        except Exception as e:
+            logging.error("发送计划创建通知邮件失败: %s", e)
+
+    threading.Thread(target=async_send_email, daemon=True).start()
 
     return jsonify({'code': 0, 'message': '日程安排成功', 'data': []}), 201
