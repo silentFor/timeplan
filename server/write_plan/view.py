@@ -35,6 +35,7 @@ def write_plan_data():
     if not user:
         return jsonify({'message': '用户不存在', 'data': ''}), 401
     account = user.account
+    user_email = user.email  # 提前取出，避免后台线程访问ORM对象触发懒加载
 
     # 读取请求 JSON 数据
     param = request.get_json() or {}
@@ -45,24 +46,26 @@ def write_plan_data():
     v_date = param.get('v_date', '')
     title = param.get('title', '')
     content = param.get('content', '')
-    logging.info([v_date, title, content, account])
+    send_email = param.get('send_email', False)
+    logging.info([v_date, title, content, account, send_email])
 
     # 调用数据处理函数
     flat = write.write_plan_data(v_date, title, content, account)
     if flat is False:
         return jsonify({'code': -1, 'message': '保存错误', 'data': ''}), 500
 
-    # 保存成功后异步发送邮件通知，避免阻塞接口响应
-    app = current_app._get_current_object()
+    # 保存成功后，根据参数决定是否异步发送邮件通知
+    if send_email:
+        app = current_app._get_current_object()
 
-    def async_send_email(app_instance):
-        with app_instance.app_context():
-            try:
-                if user.email:
-                    send_plan_created_email(user.email, title, v_date, account=account)
-            except Exception as e:
-                logging.error("发送计划创建通知邮件失败: %s", e)
+        def async_send_email(app_instance, user_email, account):
+            with app_instance.app_context():
+                try:
+                    if user_email:
+                        send_plan_created_email(user_email, title, v_date, account=account)
+                except Exception as e:
+                    logging.error("发送计划创建通知邮件失败: %s", e)
 
-    threading.Thread(target=async_send_email, args=(app,), daemon=True).start()
+        threading.Thread(target=async_send_email, args=(app, user_email, account), daemon=True).start()
 
     return jsonify({'code': 0, 'message': '日程安排成功', 'data': []}), 201

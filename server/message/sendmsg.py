@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from timeplan.model import DailySchedule, Usermsg, EmailSendRecord
 from timeplan.extensions import db
+from sqlalchemy import insert
 
 import pandas as pd
 from datetime import datetime, timedelta
@@ -198,17 +199,17 @@ def send_email(receiver_email, subject, body, account=None, record_status=1):
     # 记录邮件发送日志（仅当传入了account时记录）
     if account is not None:
         try:
-            record = EmailSendRecord(
-                account=account,
-                email=receiver_email,
-                send_content=f"主题: {subject}\n\n{body}",
-                status=record_status if success else 0,
-                c_memo=None
-            )
-            db.session.add(record)
-            db.session.commit()
+            with db.engine.begin() as conn:
+                conn.execute(
+                    insert(EmailSendRecord).values(
+                        account=account,
+                        email=receiver_email,
+                        send_content=f"主题: {subject}\n\n{body}",
+                        status=record_status if success else 0,
+                        c_memo=None
+                    )
+                )
         except Exception as e:
-            db.session.rollback()
             logging.error("保存邮件发送记录失败: %s", e)
     return True
 

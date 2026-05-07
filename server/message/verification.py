@@ -40,9 +40,11 @@ def can_resend(email: str, interval_seconds: int = 60) -> bool:
     return (now - create_time_beijing).total_seconds() >= interval_seconds
 
 
-def send_verification_code(email: str):
+def send_verification_code(email: str, purpose: str = 'register', current_email: str = None):
     """
     向指定邮箱发送验证码，并在数据库中创建记录。
+    purpose: 'register' 或 'update_email'
+    current_email: 当前用户邮箱（update_email 场景下用于判断是否是用户自己的邮箱）
     返回 (ok: bool, message: str)
     """
     if not email:
@@ -50,9 +52,18 @@ def send_verification_code(email: str):
     if not EMAIL_RE.match(email):
         return False, '邮箱格式不正确'
 
-    # 检查该邮箱是否已注册
-    if Usermsg.query.filter_by(email=email).first():
-        return False, '该邮箱已注册'
+    if purpose == 'register':
+        # 检查该邮箱是否已注册
+        if Usermsg.query.filter_by(email=email).first():
+            return False, '该邮箱已注册'
+    elif purpose == 'update_email':
+        if email == current_email:
+            return False, '新邮箱不能与当前邮箱相同'
+        existing = Usermsg.query.filter_by(email=email).first()
+        if existing:
+            return False, '该邮箱已被其他用户使用'
+    else:
+        return False, '未知的发送目的'
 
     # 检查是否在一分钟内已发送过
     if not can_resend(email, interval_seconds=60):
@@ -74,8 +85,13 @@ def send_verification_code(email: str):
         logging.error("保存验证码记录失败: %s", e)
         return False, '验证码生成失败，请重试'
 
-    subject = '时间旅程 - 注册验证码'
-    body = f'您的注册验证码是：{code}，5分钟内有效。请勿泄露给他人。'
+    if purpose == 'register':
+        subject = '时间旅程 - 注册验证码'
+        body = f'您的注册验证码是：{code}，5分钟内有效。请勿泄露给他人。'
+    else:
+        subject = '时间旅程 - 修改邮箱验证码'
+        body = f'您的修改邮箱验证码是：{code}，5分钟内有效。请勿泄露给他人。'
+
     try:
         send_email(email, subject, body)
         logging.info("验证码邮件已发送: %s", email)

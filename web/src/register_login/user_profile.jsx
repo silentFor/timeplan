@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth, logoutOn401 } from '../auth/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import './user_profile.css';
 
 export default function UserProfile() {
@@ -12,12 +12,21 @@ export default function UserProfile() {
     }
     return { ...user };
   });
+  const [originalEmail, setOriginalEmail] = useState(user?.email || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [verificationCode, setVerificationCode] = useState('');
+  const [sendingCode, setSendingCode] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const timerRef = useRef(null);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   useEffect(() => {
-    if (location.state && location.state.userData) return;
+    if (location.state && location.state.userData) {
+      setOriginalEmail(location.state.userData.email || '');
+      return;
+    }
     if (!user || !token) return;
     setLoading(true);
     fetch('http://127.0.0.1:5000/auth/get_user_msg', {
@@ -37,6 +46,7 @@ export default function UserProfile() {
         const json = await resp.json().catch(() => ({}));
         if (resp.ok && json.data) {
           setForm(json.data);
+          setOriginalEmail(json.data.email || '');
         } else {
           setError(json.message || '获取用户信息失败');
         }
@@ -45,70 +55,171 @@ export default function UserProfile() {
       .finally(() => setLoading(false));
   }, [user, token, location.state]);
 
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const startCountdown = () => {
+    setCountdown(60);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleSendCode = () => {
+    const email = form.email;
+    if (!email) {
+      setError('请输入邮箱地址');
+      return;
+    }
+    if (!emailRegex.test(email)) {
+      setError('请输入有效的邮箱地址');
+      return;
+    }
+    if (email === originalEmail) {
+      setError('邮箱未修改，无需验证');
+      return;
+    }
+    if (countdown > 0) return;
+    setSendingCode(true);
+    setError('');
+    fetch('http://127.0.0.1:5000/msg/send_verification_code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        email,
+        purpose: 'update_email',
+        current_email: originalEmail,
+      }),
+    })
+      .then(async (resp) => {
+        const json = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          setError(json.message || '发送验证码失败');
+        } else {
+          startCountdown();
+        }
+      })
+      .catch(() => setError('网络错误'))
+      .finally(() => setSendingCode(false));
   };
 
   const handleSave = (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const submitData = { ...form };
-    if (!submitData.user_id && user && user.user_id) {
-      submitData.user_id = user.user_id;
+
+    const userId = form.user_id || user?.user_id;
+    if (!userId) {
+      setError('用户ID缺失');
+      setLoading(false);
+      return;
     }
-    // 删除不可修改的 account 字段，避免误传
-    delete submitData.account;
-    fetch('http://127.0.0.1:5000/auth/update_user_msg', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(submitData),
-    })
-      .then(async (resp) => {
-        if (resp.status === 401) {
-          logoutOn401();
-          setError('登录已过期，请重新登录');
-          return;
-        }
-        const json = await resp.json().catch(() => ({}));
-        if (resp.ok && json.data) {
-          const newToken = json.token || json.data.token || token;
-          login({ user: json.data, token: newToken });
-          setForm(json.data);
-          fetch('http://127.0.0.1:5000/auth/get_user_msg', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${newToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: json.data.email }),
-          })
-            .then(async (userResp) => {
-              if (userResp.status === 401) {
-                logoutOn401();
-                setError('登录已过期，请重新登录');
-                return;
-              }
-              const userJson = await userResp.json().catch(() => ({}));
-              if (userResp.ok && userJson.data) {
-                login({ user: userJson.data, token: newToken });
-              }
-            })
-            .finally(() => {
-              alert('保存成功，请重新登录');
-              login({ user: null, token: null });
-              navigate('/login');
-            });
-        } else {
-          setError(json.message || '保存失败');
-        }
+
+    const emailChanged = form.email && form.email !== originalEmail;
+
+    const updateOtherFields = (currentToken) => {
+      const payload = {
+        user_id: userId,
+        user_name: form.user_name,
+        c_memo: form.c_memo,
+      };
+      // 如果邮箱没变，可以顺带更新；如果变了，已在 update_email 中更新
+      if (!emailChanged) {
+        payload.email = form.email;
+      }
+      fetch('http://127.0.0.1:5000/auth/update_user_msg', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       })
-      .catch(() => setError('网络错误'))
-      .finally(() => setLoading(false));
+        .then(async (resp) => {
+          if (resp.status === 401) {
+            logoutOn401();
+            setError('登录已过期，请重新登录');
+            return;
+          }
+          const json = await resp.json().catch(() => ({}));
+          if (resp.ok && json.data) {
+            const newToken = json.data.token || currentToken;
+            login({ user: json.data, token: newToken });
+            setOriginalEmail(json.data.email || '');
+            alert('保存成功');
+          } else {
+            setError(json.message || '保存失败');
+          }
+        })
+        .catch(() => setError('网络错误'))
+        .finally(() => setLoading(false));
+    };
+
+    if (emailChanged) {
+      if (!verificationCode) {
+        setError('修改邮箱需要填写验证码');
+        setLoading(false);
+        return;
+      }
+      fetch('http://127.0.0.1:5000/auth/update_email', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          new_email: form.email,
+          verification_code: verificationCode,
+        }),
+      })
+        .then(async (resp) => {
+          if (resp.status === 401) {
+            logoutOn401();
+            setError('登录已过期，请重新登录');
+            setLoading(false);
+            return;
+          }
+          const json = await resp.json().catch(() => ({}));
+          if (resp.ok && json.data) {
+            const newToken = json.data.token || token;
+            login({ user: json.data, token: newToken });
+            setOriginalEmail(json.data.email || '');
+            setVerificationCode('');
+            // 邮箱更新成功后再更新其他字段
+            updateOtherFields(newToken);
+          } else {
+            setError(json.message || '邮箱修改失败');
+            setLoading(false);
+          }
+        })
+        .catch(() => {
+          setError('网络错误');
+          setLoading(false);
+        });
+    } else {
+      updateOtherFields(token);
+    }
   };
+
+  const emailModified = form.email !== originalEmail;
 
   return (
     <div className="profile-wrapper">
@@ -128,6 +239,27 @@ export default function UserProfile() {
             <label>邮箱</label>
             <input value={form.email || ''} name="email" onChange={handleChange} />
           </div>
+          {emailModified && (
+            <div className="profile-field">
+              <label>验证码</label>
+              <div className="profile-code-row">
+                <input
+                  className="profile-code-input"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder="请输入验证码"
+                />
+                <button
+                  type="button"
+                  className="profile-code-btn"
+                  onClick={handleSendCode}
+                  disabled={sendingCode || countdown > 0}
+                >
+                  {countdown > 0 ? `${countdown}秒后重发` : (sendingCode ? '发送中...' : '获取验证码')}
+                </button>
+              </div>
+            </div>
+          )}
           <div className="profile-field">
             <label>备注</label>
             <input value={form.c_memo || ''} name="c_memo" onChange={handleChange} />

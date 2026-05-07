@@ -8,6 +8,7 @@ const Planner = () => {
   const [date, setDate] = useState(today);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [sendEmail, setSendEmail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const { token } = useAuth();
@@ -29,6 +30,7 @@ const Planner = () => {
       v_date: formattedDate,
       title: title,
       content: content,
+      send_email: sendEmail,
     };
 
     if (!token) {
@@ -112,8 +114,18 @@ const Planner = () => {
               required
             />
           </div>
+          <div className="form-group form-group-inline">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={sendEmail}
+                onChange={(e) => setSendEmail(e.target.checked)}
+              />
+              <span>发送邮件通知制定计划成功</span>
+            </label>
+          </div>
           <div className="write-actions">
-            <button type="button" className="write-btn write-btn-secondary" onClick={() => { setDate(today); setTitle(''); setContent(''); }}>
+            <button type="button" className="write-btn write-btn-secondary" onClick={() => { setDate(today); setTitle(''); setContent(''); setSendEmail(false); }}>
               重置
             </button>
             <button type="submit" className="write-btn write-btn-primary" disabled={loading}>

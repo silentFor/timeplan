@@ -19,6 +19,8 @@ def daily_send_email():
 def send_verification_code_route():
 	param = request.get_json() or {}
 	email = param.get('email', '').strip()
-	ok, message = send_verification_code(email)
+	purpose = param.get('purpose', 'register')
+	current_email = param.get('current_email')
+	ok, message = send_verification_code(email, purpose=purpose, current_email=current_email)
 	status = 200 if ok else 400
 	return jsonify({'message': message}), status

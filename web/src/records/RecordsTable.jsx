@@ -22,6 +22,7 @@ export default function RecordsTable({ records, loading, error, onRefresh }) {
     }
   });
 
+  const todayRecords = sortedRecords.filter(r => (r.v_date || '').slice(0, 10) === todayStr);
   const otherRecords = sortedRecords.filter(r => (r.v_date || '').slice(0, 10) !== todayStr);
   const totalPages = Math.ceil(otherRecords.length / PAGE_SIZE);
   const pagedRecords = otherRecords.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -95,21 +96,17 @@ export default function RecordsTable({ records, loading, error, onRefresh }) {
             </tr>
           </thead>
           <tbody>
-            {pagedRecords.length === 0 ? (
+            {todayRecords.length === 0 && pagedRecords.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ color: '#6c757d', textAlign: 'center', padding: 32 }}>暂无记录</td>
               </tr>
             ) : (
-              pagedRecords.map((rec, idx) => {
-                const recDate = (rec.v_date || '').slice(0, 10);
-                let dotClass = 'dot-future';
-                if (recDate < todayStr) dotClass = 'dot-past';
-                else if (recDate === todayStr) dotClass = 'dot-today';
-                return (
-                  <tr key={idx}>
+              <>
+                {todayRecords.map((rec, idx) => (
+                  <tr key={'today-' + idx}>
                     <td>
-                      <span className={`record-dot ${dotClass}`} />
-                      {(page - 1) * PAGE_SIZE + idx + 1}
+                      <span className="record-dot dot-today" />
+                      {idx + 1}
                     </td>
                     <td>{rec.v_title}</td>
                     <td>{rec.v_date}</td>
@@ -117,8 +114,8 @@ export default function RecordsTable({ records, loading, error, onRefresh }) {
                     <td>{rec.create_time}</td>
                     <td style={{ position: 'relative', whiteSpace: 'nowrap' }}>
                       <button className="record-btn record-btn-edit">修改</button>
-                      <button className="record-btn record-btn-delete" onClick={() => handleDeleteClick('other-' + idx)}>删除</button>
-                      {deleteKey === 'other-' + idx && (
+                      <button className="record-btn record-btn-delete" onClick={() => handleDeleteClick('today-' + idx)}>删除</button>
+                      {deleteKey === 'today-' + idx && (
                         <div className="bubble-confirm-box">
                           <button className="record-btn record-btn-delete" onClick={() => doDelete(rec)}>确认</button>
                           <button className="record-btn record-btn-edit" onClick={handleDeleteCancel}>取消</button>
@@ -126,8 +123,36 @@ export default function RecordsTable({ records, loading, error, onRefresh }) {
                       )}
                     </td>
                   </tr>
-                );
-              })
+                ))}
+                {pagedRecords.map((rec, idx) => {
+                  const recDate = (rec.v_date || '').slice(0, 10);
+                  let dotClass = 'dot-future';
+                  if (recDate < todayStr) dotClass = 'dot-past';
+                  else if (recDate === todayStr) dotClass = 'dot-today';
+                  return (
+                    <tr key={'other-' + idx}>
+                      <td>
+                        <span className={`record-dot ${dotClass}`} />
+                        {todayRecords.length + (page - 1) * PAGE_SIZE + idx + 1}
+                      </td>
+                      <td>{rec.v_title}</td>
+                      <td>{rec.v_date}</td>
+                      <td>{rec.v_content}</td>
+                      <td>{rec.create_time}</td>
+                      <td style={{ position: 'relative', whiteSpace: 'nowrap' }}>
+                        <button className="record-btn record-btn-edit">修改</button>
+                        <button className="record-btn record-btn-delete" onClick={() => handleDeleteClick('other-' + idx)}>删除</button>
+                        {deleteKey === 'other-' + idx && (
+                          <div className="bubble-confirm-box">
+                            <button className="record-btn record-btn-delete" onClick={() => doDelete(rec)}>确认</button>
+                            <button className="record-btn record-btn-edit" onClick={handleDeleteCancel}>取消</button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </>
             )}
           </tbody>
         </table>

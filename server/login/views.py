@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_cors import CORS
 
 from .login import login_user, get_user_msg
-from .user_update import update_user_msg
+from .user_update import update_user_msg, update_user_email
 from .register import register_user
 
 
@@ -51,8 +51,21 @@ def update_user_msg_route():
 	user_name = param.get('user_name')
 	email = param.get('email')
 	c_memo = param.get('c_memo')
+	verification_code = param.get('verification_code')
 
-	ok, message, data = update_user_msg(user_id, user_name, email, c_memo)
+	ok, message, data = update_user_msg(user_id, user_name, email, c_memo, verification_code)
+	status = 200 if ok else 400
+	return jsonify({'message': message, 'data': data}), status
+
+
+@login_views.route('/update_email', methods=['POST'])
+def update_email_route():
+	param = request.get_json() or {}
+	user_id = param.get('user_id')
+	new_email = param.get('new_email')
+	verification_code = param.get('verification_code')
+
+	ok, message, data = update_user_email(user_id, new_email, verification_code)
 	status = 200 if ok else 400
 	return jsonify({'message': message, 'data': data}), status
 
