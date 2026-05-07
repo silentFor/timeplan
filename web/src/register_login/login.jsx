@@ -71,6 +71,8 @@ export default function Login() {
         </form>
         <div className="auth-footer">
           <Link to="/register">还没有账号？去注册</Link>
+          <span style={{ margin: '0 8px', color: '#ced4da' }}>|</span>
+          <Link to="/forgot_password">忘记密码</Link>
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import Main from './main_page/mainpage';
 import Planner from './write_plan/writeplan';
 import Register from './register_login/register';
 import Login from './register_login/login';
+import ForgotPassword from './register_login/ForgotPassword';
 import { AuthProvider } from './auth/AuthContext';
 import Header from './components/Header';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -24,6 +25,7 @@ function App() {
               <Route path="/" element={<Main />} />
               <Route path="/plans" element={<Planner />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot_password" element={<ForgotPassword />} />
               <Route path="/register" element={<Register />} />
               <Route path="/user_profile" element={<UserProfile />} />
               <Route path="/records" element={<Records />} />

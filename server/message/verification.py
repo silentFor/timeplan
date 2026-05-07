@@ -62,6 +62,10 @@ def send_verification_code(email: str, purpose: str = 'register', current_email:
         existing = Usermsg.query.filter_by(email=email).first()
         if existing:
             return False, '该邮箱已被其他用户使用'
+    elif purpose == 'reset_password':
+        # 检查该邮箱是否存在
+        if not Usermsg.query.filter_by(email=email).first():
+            return False, '该邮箱未注册'
     else:
         return False, '未知的发送目的'
 
@@ -88,6 +92,9 @@ def send_verification_code(email: str, purpose: str = 'register', current_email:
     if purpose == 'register':
         subject = '时间旅程 - 注册验证码'
         body = f'您的注册验证码是：{code}，5分钟内有效。请勿泄露给他人。'
+    elif purpose == 'reset_password':
+        subject = '时间旅程 - 重置密码验证码'
+        body = f'您的重置密码验证码是：{code}，5分钟内有效。请勿泄露给他人。'
     else:
         subject = '时间旅程 - 修改邮箱验证码'
         body = f'您的修改邮箱验证码是：{code}，5分钟内有效。请勿泄露给他人。'
