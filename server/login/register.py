@@ -51,7 +51,7 @@ def register_user(password: str, email: str, verification_code: str, user_name: 
 		user = Usermsg(
 			account=account,
 			user_name=user_name,
-			passwocrd=password,
+			password=password,
 			email=email,
 			c_memo=c_memo,
 			is_stat=1,

@@ -23,7 +23,7 @@ class Usermsg(db.Model):
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     account = db.Column(db.String(150), nullable=False, unique=True)
     user_name = db.Column(db.String(150), nullable=True)
-    passwocrd = db.Column(db.String(255), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False)
     is_stat = db.Column(db.SmallInteger, default=1)
     c_memo = db.Column(db.Text, nullable=True)

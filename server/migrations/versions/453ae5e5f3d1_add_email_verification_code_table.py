@@ -35,7 +35,7 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('account', sa.String(length=150), nullable=False),
     sa.Column('user_name', sa.String(length=150), nullable=True),
-    sa.Column('passwocrd', sa.String(length=255), nullable=False),
+    sa.Column('password', sa.String(length=255), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('is_stat', sa.SmallInteger(), nullable=True),
     sa.Column('c_memo', sa.Text(), nullable=True),

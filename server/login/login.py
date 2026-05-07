@@ -29,10 +29,10 @@ def login_user(email: str, password: str):
     if not user:
         return False, '邮箱不存在', None
 
-    # NOTE: this compares plain-text passwords to the stored `passwocrd` field.
+    # NOTE: this compares plain-text passwords to the stored `password` field.
     # Replace with hashed password check if you store hashed passwords.
     
-    if user.passwocrd != password:
+    if user.password != password:
         return False, '密码错误', None
 
     # build response data (exclude password)
@@ -97,7 +97,7 @@ def reset_password(email: str, verification_code: str, new_password: str):
         return False, '验证码错误或已过期'
 
     try:
-        user.passwocrd = new_password
+        user.password = new_password
         user.update_time = datetime.utcnow() + TIMEZONE_OFFSET
         db.session.commit()
     except Exception as e:
